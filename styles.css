@@ -21,7 +21,7 @@
 
 [hidden] { display: none !important; }
 
-html, body { margin: 0; }
+html, body { margin: 0; height: 100%; }
 
 body {
   min-height: 100vh;
@@ -36,10 +36,12 @@ h1, h2, h3, p { margin: 0; }
 
 .app {
   display: grid;
-  gap: 22px;
-  width: min(1760px, 100%);
-  margin: 0 auto;
-  padding: 28px 32px 48px;
+  grid-template-rows: auto auto auto minmax(280px, 1fr) auto auto;
+  gap: 8px;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 10px 12px 8px;
 }
 
 .mast {
@@ -50,8 +52,8 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .crest {
-  width: 92px;
-  height: 104px;
+  width: clamp(84px, 7vw, 140px);
+  height: clamp(96px, 8vw, 156px);
   object-fit: contain;
   flex: none;
   background: white;
@@ -60,14 +62,14 @@ h1, h2, h3, p { margin: 0; }
 
 .mast-id { min-width: 0; }
 .mast-id h1 {
-  font-size: 34px;
+  font-size: clamp(32px, 2.4vw, 56px);
   letter-spacing: -0.03em;
   line-height: 1.15;
 }
 .mast-id p {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 18px;
+  font-size: clamp(16px, 1.2vw, 26px);
   font-weight: 650;
 }
 
@@ -79,7 +81,7 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .clock-hm {
-  font-size: clamp(64px, 6.4vw, 92px);
+  font-size: clamp(72px, 8vw, 168px);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 0.9;
@@ -87,14 +89,14 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .clock-period {
-  font-size: 26px;
+  font-size: clamp(22px, 2vw, 42px);
   font-weight: 700;
   color: #3c465c;
 }
 
 .mast-when { min-width: 168px; }
-.clock-date { font-size: 18px; font-weight: 700; }
-.sensor-line { margin-top: 4px; color: var(--muted); font-size: 16px; font-weight: 650; }
+.clock-date { font-size: clamp(16px, 1.3vw, 28px); font-weight: 700; }
+.sensor-line { margin-top: 4px; color: var(--muted); font-size: clamp(14px, 1.1vw, 24px); font-weight: 650; }
 
 .history-btn {
   border: 0;
@@ -191,7 +193,7 @@ h1, h2, h3, p { margin: 0; }
   scroll-margin-top: 16px;
 }
 
-.status-card { padding: 22px 26px 24px; }
+.status-card { padding: 16px 22px 18px; }
 .eyebrow {
   margin: 0 0 8px;
   color: #8b93a3;
@@ -199,7 +201,7 @@ h1, h2, h3, p { margin: 0; }
   font-weight: 700;
 }
 .lead {
-  font-size: clamp(48px, 4.8vw, 72px);
+  font-size: clamp(52px, 5.2vw, 108px);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.15;
@@ -211,14 +213,14 @@ h1, h2, h3, p { margin: 0; }
 .room-detail {
   margin-top: 12px;
   color: #3c465c;
-  font-size: 24px;
+  font-size: clamp(22px, 1.7vw, 36px);
   font-weight: 650;
   line-height: 1.55;
 }
 
 .score-card {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: clamp(110px, 9vw, 180px) minmax(0, 1fr);
   gap: 8px;
   align-items: center;
   padding: 16px 16px 16px 12px;
@@ -230,22 +232,29 @@ h1, h2, h3, p { margin: 0; }
   font-size: 12px;
   font-weight: 700;
 }
-.score-title { font-size: 24px; font-weight: 700; line-height: 1.35; }
-.score-detail { margin-top: 8px; color: var(--muted); font-size: 18px; font-weight: 650; line-height: 1.45; }
+.score-title { font-size: clamp(22px, 1.8vw, 40px); font-weight: 700; line-height: 1.35; }
+.score-detail { margin-top: 8px; color: var(--muted); font-size: clamp(16px, 1.3vw, 28px); font-weight: 650; line-height: 1.45; }
+#ring svg { width: 100%; height: auto; max-width: 170px; }
 
 .section { display: grid; gap: 12px; scroll-margin-top: 16px; }
+#metrics { min-height: 0; height: 100%; align-content: stretch; }
 .section-head h2 { font-size: 22px; }
 .section-head p { margin-top: 4px; color: var(--muted); font-size: 14px; line-height: 1.5; }
 
 .metric-grid, .chart-grid, .learn-grid { display: grid; gap: 14px; }
-.metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.metric-grid {
+  height: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: 1fr 1fr;
+  gap: clamp(12px, 1.2vw, 22px);
+}
 .chart-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .learn-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 .metric {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 220px;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 32%);
   grid-template-areas:
     "top top"
     "value plot"
@@ -253,8 +262,9 @@ h1, h2, h3, p { margin: 0; }
   column-gap: 12px;
   row-gap: 4px;
   align-content: center;
-  min-height: 250px;
-  padding: 28px 28px 28px 30px;
+  height: 100%;
+  min-height: 0;
+  padding: clamp(16px, 1.4vw, 32px);
   border-left: 8px solid var(--accent, var(--blue));
   overflow: hidden;
 }
@@ -265,23 +275,23 @@ h1, h2, h3, p { margin: 0; }
   gap: 8px;
   margin-bottom: 8px;
 }
-.metric-name { font-weight: 700; font-size: 28px; }
+.metric-name { font-weight: 700; font-size: clamp(24px, 1.8vw, 42px); }
 .metric-short { color: var(--muted); font-size: 13px; }
 .metric-value {
   grid-area: value;
   align-self: end;
-  font-size: clamp(56px, 4.2vw, 76px);
+  font-size: clamp(64px, 5vw, 128px);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 0.95;
   font-variant-numeric: tabular-nums;
 }
-.metric-unit { font-size: 26px; color: #4b5568; font-weight: 650; margin-left: 4px; }
+.metric-unit { font-size: clamp(20px, 1.6vw, 36px); color: #4b5568; font-weight: 650; margin-left: 4px; }
 .metric-status {
   grid-area: status;
   align-self: start;
   margin-top: 12px;
-  font-size: 22px;
+  font-size: clamp(18px, 1.4vw, 32px);
   font-weight: 700;
   color: #667085;
 }
@@ -301,7 +311,7 @@ h1, h2, h3, p { margin: 0; }
 .bubble svg { width: 24px; height: 24px; display: block; }
 
 .plot { position: relative; }
-.plot-sm { grid-area: plot; height: 140px; align-self: center; }
+.plot-sm { grid-area: plot; height: 100%; min-height: 120px; align-self: stretch; }
 .plot-lg { height: 200px; }
 .plot svg { display: block; width: 100%; height: 100%; }
 .empty {
@@ -323,7 +333,7 @@ h1, h2, h3, p { margin: 0; }
   box-shadow: var(--shadow);
   padding: 14px 18px;
 }
-.dock-tip { font-size: 22px; line-height: 1.45; }
+.dock-tip { font-size: clamp(20px, 1.6vw, 34px); line-height: 1.45; }
 .dock-tip span {
   display: inline-block;
   margin-right: 8px;
@@ -504,7 +514,15 @@ summary { cursor: pointer; font-weight: 700; }
 
 :focus-visible { outline: 3px solid #8eacff; outline-offset: 2px; }
 
+@media (min-width: 901px) {
+  body, .app { height: 100vh; overflow: hidden; }
+}
+
 @media (max-width: 900px) {
+  .app { min-height: 0; grid-template-rows: none; }
+  #metrics, .metric-grid { height: auto; }
+  .metric-grid { grid-template-rows: none; }
+  .metric { height: auto; min-height: 210px; }
   .mast { flex-wrap: wrap; }
   .mast-time { margin-left: 0; }
   .jump { flex-wrap: nowrap; overflow-x: auto; }
