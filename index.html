@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f6f1e8">
+  <meta name="robots" content="noindex">
+  <title>聖心環境站 · 5A</title>
+  <link rel="icon" href="crest.jpg">
+  <link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+  <div class="app">
+    <header class="mast">
+      <img class="crest" src="crest.jpg" alt="聖母無玷聖心學校校徽">
+      <div class="mast-id">
+        <h1>聖母無玷聖心學校</h1>
+        <p><span data-bind="school">聖心</span>環境站 · <span data-bind="class">5A</span> 班課室</p>
+      </div>
+      <div class="mast-time">
+        <div class="clock-hm" id="clock-hm">--:--</div>
+        <div class="clock-period" id="clock-period">上午</div>
+      </div>
+      <div class="mast-when">
+        <p class="clock-date" id="clock-date">正在讀取日期</p>
+        <p class="sensor-line" id="sensor-line">最後量度 —</p>
+      </div>
+    </header>
+
+    <nav class="jump" aria-label="頁面">
+      <button type="button" data-target="overview" class="active">課室主頁</button>
+      <button type="button" data-target="metrics">即時指標</button>
+      <span class="jump-space"></span>
+      <button type="button" class="text-btn" id="refresh-now">更新</button>
+      <button type="button" class="text-btn" id="open-settings" data-open-settings>老師設定</button>
+    </nav>
+
+    <div id="banner" class="banner">
+      <p id="banner-text">現在是示範畫面。連接 ThingSpeak 後，就會改為 micro:bit 雲板的真實讀數。</p>
+      <button type="button" class="btn secondary" id="banner-action" data-open-settings>連接 ThingSpeak</button>
+    </div>
+
+    <section id="overview" class="status-row">
+      <article class="card status-card">
+        <p class="eyebrow">現在的課室</p>
+        <p class="lead" id="room-title">正在準備</p>
+        <p class="room-detail" id="room-detail">讀數會顯示在下面。</p>
+      </article>
+      <article class="card score-card">
+        <div class="ring-wrap">
+          <div id="ring" aria-hidden="true"></div>
+          <p class="ring-caption">舒適評分</p>
+        </div>
+        <div>
+          <p class="score-title" id="score-title">準備中</p>
+          <p class="score-detail" id="score-detail">六項指標會計在這裡。</p>
+        </div>
+      </article>
+    </section>
+
+    <section id="metrics" class="section">
+      <div id="metric-grid" class="metric-grid"></div>
+    </section>
+
+    <footer class="dock">
+      <p class="dock-tip"><span>我們可以</span> <b id="dock-text">看看下面的讀數。</b></p>
+      <p class="dock-live" id="live-pill"><span class="dot"></span><span id="live-pill-text">準備中</span></p>
+    </footer>
+    <p id="update-pill" class="sr-only"><span id="update-pill-text">準備中</span></p>
+
+    <section class="section tips-section">
+      <div class="section-head">
+        <h2>我們可以做的事</h2>
+      </div>
+      <ul id="tips" class="tips"></ul>
+      <p class="channel-line"><span id="channel-note"></span> <a id="channel-link" href="https://thingspeak.com" target="_blank" rel="noopener noreferrer" hidden>打開 ThingSpeak</a></p>
+    </section>
+  </div>
+
+  <dialog id="settings" aria-labelledby="settings-title">
+    <form id="settings-form" autocomplete="off">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">老師設定</p>
+          <h2 id="settings-title">連接 ThingSpeak</h2>
+        </div>
+        <button type="button" class="icon-btn" id="close-settings" aria-label="關閉">×</button>
+      </div>
+      <div class="dialog-body">
+        <p class="dialog-note">在 ThingSpeak 頻道頁面複製 Channel ID。私人頻道還要填 <strong>Read API Key</strong>，不要填寫入用的 Write API Key。你的圖表順序是 Field 1 溫度、2 濕度、3 PM2.5、4 二氧化碳、5 TVOC、6 噪音。</p>
+        <div class="form-grid">
+          <label class="wide">頻道編號
+            <input id="channel-id" type="text" inputmode="numeric" placeholder="例如 1234567，或貼上頻道網址" spellcheck="false">
+          </label>
+          <label class="wide">Read API Key（公開頻道可留空）
+            <input id="read-key" type="password" placeholder="只填 Read API Key" autocomplete="off">
+          </label>
+          <label>學校名稱
+            <input id="school-name" type="text" maxlength="24">
+          </label>
+          <label>班別
+            <input id="class-name" type="text" maxlength="12" placeholder="5A">
+          </label>
+        </div>
+        <label class="check"><input id="use-demo" type="checkbox"> 暫時仍看示範數據</label>
+        <details>
+          <summary>欄位對應（預設已照你的六張圖）</summary>
+          <label class="check"><input id="manual-map" type="checkbox"> 不要自動對應，跟我填的欄位編號</label>
+          <div class="field-map">
+            <label>溫度 <input id="field-temperature" type="number" min="1" max="8" value="1"></label>
+            <label>濕度 <input id="field-humidity" type="number" min="1" max="8" value="2"></label>
+            <label>PM2.5 <input id="field-pm25" type="number" min="1" max="8" value="3"></label>
+            <label>二氧化碳 <input id="field-co2" type="number" min="1" max="8" value="4"></label>
+            <label>TVOC <input id="field-tvoc" type="number" min="1" max="8" value="5"></label>
+            <label>噪音 <input id="field-noise" type="number" min="1" max="8" value="6"></label>
+          </div>
+        </details>
+        <p id="form-message" class="form-message" role="status"></p>
+        <div id="test-result" class="test-result"></div>
+        <div class="dialog-actions">
+          <button type="button" class="btn ghost" id="clear-settings">清除頻道</button>
+          <button type="button" class="btn secondary" id="test-connection">測試連接</button>
+          <button type="submit" class="btn">儲存</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js?v=1"></script>
+</body>
+</html>
