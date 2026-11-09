@@ -936,7 +936,7 @@ function render() {
   const roomTitle = document.getElementById("room-title");
   roomTitle.textContent = scene.title;
   roomTitle.className = `lead is-${summary.tone}`;
-  text("#room-detail", scene.detail);
+  text("#room-detail", scene.tips.join(""));
   text("#dock-text", scene.dock);
 
   for (const row of rows) {
@@ -954,11 +954,6 @@ function render() {
   renderRing(summary);
   text("#score-title", watchPhrase(rows, summary));
   text("#score-detail", highlightLine(rows));
-  const tipList = document.getElementById("tips");
-  tipList.replaceChildren();
-  scene.tips.forEach((tip, index) => {
-    tipList.append(el("li", {}, [el("span", {}, index + 1), el("div", {}, tip)]));
-  });
 
   const link = document.getElementById("channel-link");
   if (state.source === "live" && state.settings.channelId) {
@@ -1005,8 +1000,8 @@ function situation(rows, summary) {
         bad: ["課室比較熱", "溫度比較高，小心不要焗著", "請告訴老師把冷氣調低一點。", "課室比較熱，請告訴老師調節冷氣，不要自己亂按很多掣。"],
       },
       low: {
-        ok: ["課室有點涼", "溫度低了一點", "告訴老師把冷氣調暖一點，其他都很好。", "溫度低了一點，可以告訴老師把冷氣調暖。"],
-        bad: ["課室比較冷", "溫度比較低", "請告訴老師把冷氣調暖一點。", "課室比較冷，請告訴老師把冷氣調暖，不要自己亂按很多掣。"],
+        ok: ["課室有點涼", "可是有點涼，同學們請添衣保暖", "同學們請添衣保暖，其他都很好。", "可是有點涼，同學們請添衣保暖。"],
+        bad: ["課室比較冷", "可是有點涼，同學們請添衣保暖", "同學們請添衣保暖，並告訴老師把冷氣調暖一點。", "可是有點涼，同學們請添衣保暖。請告訴老師把冷氣調暖一點。"],
       },
     },
     humidity: {

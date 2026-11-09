@@ -36,8 +36,8 @@ h1, h2, h3, p { margin: 0; }
 
 .app {
   display: grid;
-  gap: 16px;
-  max-width: 1120px;
+  gap: 18px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 22px 20px 40px;
 }
@@ -209,11 +209,11 @@ h1, h2, h3, p { margin: 0; }
 .lead.is-bad { color: var(--bad); }
 .lead.is-none { color: var(--muted); }
 .room-detail {
-  margin-top: 10px;
-  color: #5c6578;
-  font-size: 16px;
+  margin-top: 12px;
+  color: #3c465c;
+  font-size: 20px;
   font-weight: 650;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .score-card {
@@ -238,24 +238,24 @@ h1, h2, h3, p { margin: 0; }
 .section-head p { margin-top: 4px; color: var(--muted); font-size: 14px; line-height: 1.5; }
 
 .metric-grid, .chart-grid, .learn-grid { display: grid; gap: 14px; }
-.metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .chart-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .learn-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 .metric {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 128px;
+  grid-template-columns: minmax(0, 1fr) 168px;
   grid-template-areas:
     "top top"
     "value plot"
     "status plot";
-  column-gap: 8px;
-  row-gap: 2px;
+  column-gap: 12px;
+  row-gap: 4px;
   align-content: center;
-  min-height: 148px;
-  padding: 16px 16px 16px 18px;
-  border-left: 6px solid var(--accent, var(--blue));
+  min-height: 196px;
+  padding: 22px 22px 22px 24px;
+  border-left: 8px solid var(--accent, var(--blue));
   overflow: hidden;
 }
 .metric-top {
@@ -265,23 +265,23 @@ h1, h2, h3, p { margin: 0; }
   gap: 8px;
   margin-bottom: 8px;
 }
-.metric-name { font-weight: 700; font-size: 16px; }
+.metric-name { font-weight: 700; font-size: 22px; }
 .metric-short { color: var(--muted); font-size: 13px; }
 .metric-value {
   grid-area: value;
   align-self: end;
-  font-size: 40px;
+  font-size: 56px;
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 0.95;
   font-variant-numeric: tabular-nums;
 }
-.metric-unit { font-size: 16px; color: #4b5568; font-weight: 650; margin-left: 2px; }
+.metric-unit { font-size: 22px; color: #4b5568; font-weight: 650; margin-left: 4px; }
 .metric-status {
   grid-area: status;
   align-self: start;
-  margin-top: 8px;
-  font-size: 14px;
+  margin-top: 10px;
+  font-size: 18px;
   font-weight: 700;
   color: #667085;
 }
@@ -289,8 +289,8 @@ h1, h2, h3, p { margin: 0; }
 .metric-status.ok { color: var(--ok); }
 .metric-status.bad { color: var(--bad); }
 .bubble {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 9px;
   display: grid;
   place-items: center;
@@ -298,10 +298,10 @@ h1, h2, h3, p { margin: 0; }
   color: var(--accent, var(--blue));
   flex: none;
 }
-.bubble svg { width: 16px; height: 16px; display: block; }
+.bubble svg { width: 20px; height: 20px; display: block; }
 
 .plot { position: relative; }
-.plot-sm { grid-area: plot; height: 72px; align-self: center; }
+.plot-sm { grid-area: plot; height: 108px; align-self: center; }
 .plot-lg { height: 200px; }
 .plot svg { display: block; width: 100%; height: 100%; }
 .empty {
@@ -516,7 +516,7 @@ summary { cursor: pointer; font-weight: 700; }
 
 @media (max-width: 640px) {
   .metric-grid, .form-grid, .field-map { grid-template-columns: 1fr; }
-  .metric-value { font-size: 34px; }
+  .metric-value { font-size: 44px; }
   .mast-id h1 { font-size: 22px; }
   .banner { flex-direction: column; align-items: stretch; }
 }
