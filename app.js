@@ -217,7 +217,24 @@ function el(tag, attrs = {}, children = []) {
 
 function text(selector, value) {
   const node = document.querySelector(selector);
-  if (node) node.textContent = value == null ? "" : String(value);
+  if (!node) return;
+  const next = value == null ? "" : String(value);
+  if (node.textContent !== next) node.textContent = next;
+}
+
+function paintValue(node, metric, value) {
+  const number = formatNumber(metric, value);
+  const unit = value == null || number === "—" ? "" : (metric.unit === "°C" || metric.unit === "%" ? metric.unit : ` ${metric.unit}`);
+  const figure = `${number}${unit}`;
+  if (node.dataset.figure === figure) return;
+  const seen = Boolean(node.dataset.figure);
+  node.dataset.figure = figure;
+  node.replaceChildren(document.createTextNode(number));
+  if (unit) node.append(el("span", { class: "metric-unit" }, unit));
+  if (!seen) return;
+  node.classList.remove("is-fresh");
+  void node.offsetWidth;
+  node.classList.add("is-fresh");
 }
 
 function classLabel() {
@@ -556,8 +573,16 @@ function buildShells() {
   }
 }
 
+const plotFrames = new WeakMap();
 const plotObserver = new ResizeObserver((entries) => {
-  for (const entry of entries) drawChart(entry.target);
+  for (const entry of entries) {
+    const plot = entry.target;
+    if (plotFrames.has(plot)) continue;
+    plotFrames.set(plot, requestAnimationFrame(() => {
+      plotFrames.delete(plot);
+      drawChart(plot);
+    }));
+  }
 });
 
 function watchPlot(plot) {
@@ -670,17 +695,28 @@ function drawWidget(plot, spec) {
   }
 }
 
+function chartStamp(spec, width, height) {
+  const points = spec.points;
+  if (!points.length) return `empty|${spec.compact ? 1 : 0}|${spec.metric.key}`;
+  const last = points[points.length - 1];
+  return [spec.compact ? 1 : 0, spec.metric.key, width, height, points.length, points[0].t, last.t, last.v].join("|");
+}
+
 function drawChart(plot, attempt = 0) {
   const spec = charts.get(plot);
   if (!spec) return;
-  if (spec.compact && spec.metric.widget && spec.metric.widget !== "spark" && spec.metric.widget !== "line") {
-    drawWidget(plot, spec);
-    return;
-  }
   const width = plot.clientWidth;
   const measured = plot.clientHeight;
   if (width < 20 || measured < 20) {
     if (attempt < 8) requestAnimationFrame(() => drawChart(plot, attempt + 1));
+    return;
+  }
+  const stamp = chartStamp(spec, width, measured);
+  if (plot._stamp === stamp) return;
+  const widgetOnly = spec.compact && spec.metric.widget && spec.metric.widget !== "spark" && spec.metric.widget !== "line";
+  if (widgetOnly) {
+    drawWidget(plot, spec);
+    plot._stamp = stamp;
     return;
   }
   const { points, metric, compact } = spec;
@@ -692,6 +728,7 @@ function drawChart(plot, attempt = 0) {
     if (tip) tip.hidden = true;
     if (!plot.querySelector(".empty")) plot.append(el("p", { class: "empty" }, "未有讀數"));
     plot._layout = null;
+    plot._stamp = stamp;
     return;
   }
   if (!svg) {
@@ -811,6 +848,7 @@ function drawChart(plot, attempt = 0) {
     });
   }
   plot._layout = { points, xOf, yOf, width, height, metric, compact };
+  plot._stamp = stamp;
   if (!plot.dataset.bound) {
     plot.dataset.bound = "1";
     plot.addEventListener("mousemove", onChartMove);
@@ -888,38 +926,44 @@ function renderRing(summary) {
   const dash = (circ * pct).toFixed(2);
   const gap = (circ - circ * pct).toFixed(2);
   const label = summary.total ? `${summary.good}/${summary.total}` : "—";
-  ring.replaceChildren();
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 96 96");
-  svg.setAttribute("width", "96");
-  svg.setAttribute("height", "96");
-  const track = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  track.setAttribute("cx", "48");
-  track.setAttribute("cy", "48");
-  track.setAttribute("r", String(radius));
-  track.setAttribute("fill", "none");
-  track.setAttribute("stroke", "#e7ebf3");
-  track.setAttribute("stroke-width", "8");
-  const arc = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  arc.setAttribute("cx", "48");
-  arc.setAttribute("cy", "48");
-  arc.setAttribute("r", String(radius));
-  arc.setAttribute("fill", "none");
+  let arc = ring.querySelector(".ring-arc");
+  let labelNode = ring.querySelector(".ring-label");
+  if (!arc || !labelNode) {
+    ring.replaceChildren();
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 96 96");
+    svg.setAttribute("width", "96");
+    svg.setAttribute("height", "96");
+    const track = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    track.setAttribute("cx", "48");
+    track.setAttribute("cy", "48");
+    track.setAttribute("r", String(radius));
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "#e7ebf3");
+    track.setAttribute("stroke-width", "8");
+    arc = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    arc.setAttribute("class", "ring-arc");
+    arc.setAttribute("cx", "48");
+    arc.setAttribute("cy", "48");
+    arc.setAttribute("r", String(radius));
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke-width", "8");
+    arc.setAttribute("stroke-linecap", "round");
+    arc.setAttribute("transform", "rotate(-90 48 48)");
+    labelNode = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    labelNode.setAttribute("class", "ring-label");
+    labelNode.setAttribute("x", "48");
+    labelNode.setAttribute("y", "53");
+    labelNode.setAttribute("text-anchor", "middle");
+    labelNode.setAttribute("font-size", "16");
+    labelNode.setAttribute("font-weight", "700");
+    labelNode.setAttribute("fill", "#1c2434");
+    svg.append(track, arc, labelNode);
+    ring.append(svg);
+  }
   arc.setAttribute("stroke", color);
-  arc.setAttribute("stroke-width", "8");
-  arc.setAttribute("stroke-linecap", "round");
   arc.setAttribute("stroke-dasharray", `${dash} ${gap}`);
-  arc.setAttribute("transform", "rotate(-90 48 48)");
-  const labelNode = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  labelNode.setAttribute("x", "48");
-  labelNode.setAttribute("y", "53");
-  labelNode.setAttribute("text-anchor", "middle");
-  labelNode.setAttribute("font-size", "16");
-  labelNode.setAttribute("font-weight", "700");
-  labelNode.setAttribute("fill", "#1c2434");
   labelNode.textContent = label;
-  svg.append(track, arc, labelNode);
-  ring.append(svg);
 }
 
 function chartFoot(metric, points) {
@@ -966,19 +1010,19 @@ function render() {
 
   const scene = situation(rows, summary);
   const roomTitle = document.getElementById("room-title");
-  roomTitle.textContent = scene.title;
-  roomTitle.className = `lead is-${summary.tone}`;
+  text("#room-title", scene.title);
+  const toneClass = `lead is-${summary.tone}`;
+  if (roomTitle.className !== toneClass) roomTitle.className = toneClass;
   text("#room-detail", scene.tips.join(""));
   text("#dock-text", scene.dock);
 
   for (const row of rows) {
     const pill = document.getElementById(`pill-${row.metric.key}`);
-    pill.textContent = LEVEL_LABEL[row.level];
-    pill.className = `metric-status ${row.level}`;
+    const pillClass = `metric-status ${row.level}`;
+    if (pill.textContent !== LEVEL_LABEL[row.level]) pill.textContent = LEVEL_LABEL[row.level];
+    if (pill.className !== pillClass) pill.className = pillClass;
     const value = document.getElementById(`value-${row.metric.key}`);
-    value.textContent = "";
-    value.append(formatNumber(row.metric, row.value));
-    if (row.value != null) value.append(el("span", { class: "metric-unit" }, row.metric.unit === "°C" || row.metric.unit === "%" ? row.metric.unit : ` ${row.metric.unit}`));
+    paintValue(value, row.metric, row.value);
     value.title = "ThingSpeak 最新一筆讀數";
     setChart(document.querySelector(`#metric-${row.metric.key} .plot`), row.points, row.metric, true);
     text(`#chart-now-${row.metric.key}`, row.value == null ? "—" : valueText(row.metric, row.value));
@@ -1272,6 +1316,10 @@ function showDemo() {
 function showPage(page, target) {
   document.getElementById("page-now").hidden = page !== "now";
   document.getElementById("page-history").hidden = page !== "history";
+  const showing = document.getElementById(page === "history" ? "page-history" : "page-now");
+  showing.classList.remove("is-entering");
+  void showing.offsetWidth;
+  showing.classList.add("is-entering");
   document.querySelectorAll("[data-page]").forEach((button) => {
     button.classList.toggle("active", button.dataset.page === page && (button.dataset.target || "") === (target || ""));
   });
