@@ -881,34 +881,46 @@ function placeChartTip(tip, anchorX, anchorY, boundsW, boundsH) {
   tip.style.top = `${top}px`;
 }
 
+function svgPoint(svg, clientX, clientY) {
+  const point = svg.createSVGPoint();
+  point.x = clientX;
+  point.y = clientY;
+  const matrix = svg.getScreenCTM();
+  if (!matrix) return null;
+  return point.matrixTransform(matrix.inverse());
+}
+
 function onChartMove(event) {
-  const layout = event.currentTarget._layout;
-  const tip = event.currentTarget.querySelector(".chart-tip");
-  if (!layout || layout.compact || !tip || !layout.points.length) return;
-  const rect = event.currentTarget.getBoundingClientRect();
-  const px = ((event.clientX - rect.left) / rect.width) * layout.width;
+  const plot = event.currentTarget;
+  const layout = plot._layout;
+  const tip = plot.querySelector(".chart-tip");
+  const svg = plot.querySelector("svg");
+  if (!layout || layout.compact || !tip || !svg || !layout.points.length) return;
+  const cursor = svgPoint(svg, event.clientX, event.clientY);
+  const reach = svgPoint(svg, event.clientX + 36, event.clientY);
+  if (!cursor || !reach) return;
+  const limit = Math.max(1, Math.hypot(reach.x - cursor.x, reach.y - cursor.y));
   let best = null;
   let bestDist = Infinity;
   for (const point of layout.points) {
-    const dist = Math.abs(layout.xOf(point.t) - px);
+    const dist = Math.hypot(layout.xOf(point.t) - cursor.x, layout.yOf(point.v) - cursor.y);
     if (dist < bestDist) {
       bestDist = dist;
       best = point;
     }
   }
-  if (!best || bestDist > 28) {
+  if (!best || bestDist > limit) {
     tip.hidden = true;
     return;
   }
+  const anchor = svg.createSVGPoint();
+  anchor.x = layout.xOf(best.t);
+  anchor.y = layout.yOf(best.v);
+  const screen = anchor.matrixTransform(svg.getScreenCTM());
+  const rect = plot.getBoundingClientRect();
   tip.hidden = false;
   tip.textContent = `${formatAxis(best.t)} · ${valueText(layout.metric, best.v)}`;
-  placeChartTip(
-    tip,
-    (layout.xOf(best.t) / layout.width) * rect.width,
-    (layout.yOf(best.v) / layout.height) * rect.height,
-    rect.width,
-    rect.height,
-  );
+  placeChartTip(tip, screen.x - rect.left, screen.y - rect.top, rect.width, rect.height);
 }
 
 function setChart(plot, points, metric, compact) {
