@@ -589,6 +589,11 @@ function watchPlot(plot) {
   plotObserver.observe(plot);
 }
 
+function cssVar(name, fallback) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
 function svgNode(parent, name, attrs) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", name);
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
@@ -612,7 +617,7 @@ function drawWidget(plot, spec) {
   svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
   svg.replaceChildren();
   const value = points[points.length - 1].v;
-  const track = "#efeae4";
+  const track = cssVar("--track", "#efeae4");
   if (metric.widget === "arc") {
     svg.setAttribute("viewBox", "0 0 140 78");
     const cx = 70;
@@ -647,7 +652,7 @@ function drawWidget(plot, spec) {
     const pct = Math.min(1, Math.max(0, value / 35));
     const x = 18 + pct * 104;
     svgNode(svg, "line", { x1: 16, x2: 124, y1: 24, y2: 24, stroke: track, "stroke-width": 4, "stroke-linecap": "round" });
-    svgNode(svg, "circle", { cx: x, cy: 24, r: 9, fill: "#e5f6ec" });
+    svgNode(svg, "circle", { cx: x, cy: 24, r: 9, fill: cssVar("--halo", "#e5f6ec") });
     svgNode(svg, "circle", { cx: x, cy: 24, r: 5.5, fill: metric.color });
     return;
   }
@@ -680,7 +685,7 @@ function drawWidget(plot, spec) {
     const radius = 28;
     const length = 2 * Math.PI * radius;
     const pct = Math.min(1, Math.max(0, value / 100));
-    svgNode(svg, "circle", { cx: 44, cy: 44, r: radius, fill: "none", stroke: "#f6e8ee", "stroke-width": 10 });
+    svgNode(svg, "circle", { cx: 44, cy: 44, r: radius, fill: "none", stroke: cssVar("--ring-track", "#f6e8ee"), "stroke-width": 10 });
     svgNode(svg, "circle", {
       cx: 44,
       cy: 44,
@@ -697,9 +702,9 @@ function drawWidget(plot, spec) {
 
 function chartStamp(spec, width, height) {
   const points = spec.points;
-  if (!points.length) return `empty|${spec.compact ? 1 : 0}|${spec.metric.key}`;
+  if (!points.length) return `empty|${document.documentElement.dataset.theme || "light"}|${spec.compact ? 1 : 0}|${spec.metric.key}`;
   const last = points[points.length - 1];
-  return [spec.compact ? 1 : 0, spec.metric.key, width, height, points.length, points[0].t, last.t, last.v].join("|");
+  return [document.documentElement.dataset.theme || "light", spec.compact ? 1 : 0, spec.metric.key, width, height, points.length, points[0].t, last.t, last.v].join("|");
 }
 
 function drawChart(plot, attempt = 0) {
@@ -769,12 +774,12 @@ function drawChart(plot, attempt = 0) {
   if (!compact) {
     [dataMax, (dataMax + dataMin) / 2, dataMin].forEach((tick) => {
       const y = yOf(tick);
-      add("line", { x1: pad.l, x2: width - pad.r, y1: y, y2: y, stroke: "#e6eaf2", "stroke-width": 1 });
+      add("line", { x1: pad.l, x2: width - pad.r, y1: y, y2: y, stroke: cssVar("--grid", "#e6eaf2"), "stroke-width": 1 });
       add("text", {
         x: pad.l - 6,
         y: y + 4,
         "text-anchor": "end",
-        fill: "#8b93a7",
+        fill: cssVar("--axis", "#8b93a7"),
         "font-size": axisFont,
       }).textContent = formatNumber(metric, tick);
     });
@@ -786,7 +791,7 @@ function drawChart(plot, attempt = 0) {
         x,
         y: height - 6,
         "text-anchor": anchor,
-        fill: "#8b93a7",
+        fill: cssVar("--axis", "#8b93a7"),
         "font-size": axisFont,
       }).textContent = formatAxis(t);
     });
@@ -798,7 +803,7 @@ function drawChart(plot, attempt = 0) {
       x2: width - pad.r,
       y1: guide,
       y2: guide,
-      stroke: "#d5e0e8",
+      stroke: cssVar("--grid", "#d5e0e8"),
       "stroke-width": 1.2,
       "stroke-dasharray": "2.5 3.5",
     });
@@ -951,7 +956,8 @@ function renderRing(summary) {
     track.setAttribute("cy", "48");
     track.setAttribute("r", String(radius));
     track.setAttribute("fill", "none");
-    track.setAttribute("stroke", "#e7ebf3");
+    track.setAttribute("class", "ring-track");
+    track.setAttribute("stroke", cssVar("--track", "#e7ebf3"));
     track.setAttribute("stroke-width", "8");
     arc = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     arc.setAttribute("class", "ring-arc");
@@ -969,12 +975,14 @@ function renderRing(summary) {
     labelNode.setAttribute("text-anchor", "middle");
     labelNode.setAttribute("font-size", "16");
     labelNode.setAttribute("font-weight", "700");
-    labelNode.setAttribute("fill", "#1c2434");
+    labelNode.setAttribute("fill", cssVar("--ink", "#1c2434"));
     svg.append(track, arc, labelNode);
     ring.append(svg);
   }
   arc.setAttribute("stroke", color);
   arc.setAttribute("stroke-dasharray", `${dash} ${gap}`);
+  ring.querySelector(".ring-track")?.setAttribute("stroke", cssVar("--track", "#e7ebf3"));
+  labelNode.setAttribute("fill", cssVar("--ink", "#1c2434"));
   labelNode.textContent = label;
 }
 
@@ -1443,6 +1451,8 @@ function bindUi() {
   document.querySelectorAll("[data-page]").forEach((button) => {
     button.addEventListener("click", () => showPage(button.dataset.page, button.dataset.target));
   });
+  document.getElementById("theme-light").addEventListener("click", () => applyTheme("light"));
+  document.getElementById("theme-dark").addEventListener("click", () => applyTheme("dark"));
   const fullscreenButton = document.getElementById("fullscreen-btn");
   fullscreenButton.addEventListener("click", async () => {
     try {
@@ -1467,7 +1477,28 @@ function bindUi() {
   });
 }
 
+const THEME_KEY = "ihms-classroom-now-theme";
+
+function applyTheme(theme) {
+  const next = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = next;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = next === "dark" ? "#17140f" : "#f6f1e8";
+  document.getElementById("theme-light")?.setAttribute("aria-pressed", String(next === "light"));
+  document.getElementById("theme-dark")?.setAttribute("aria-pressed", String(next === "dark"));
+  localStorage.setItem(THEME_KEY, next);
+  document.querySelectorAll(".plot").forEach((plot) => {
+    plot._stamp = "";
+    if (charts.has(plot)) drawChart(plot);
+  });
+  document.querySelector(".ring-label")?.setAttribute("fill", cssVar("--ink", "#1c2434"));
+  document.querySelector(".ring-track")?.setAttribute("stroke", cssVar("--track", "#e7ebf3"));
+}
+
 function boot() {
+  const requested = new URLSearchParams(location.search).get("theme");
+  const saved = localStorage.getItem(THEME_KEY);
+  applyTheme(requested === "dark" || requested === "light" ? requested : saved);
   state.settings = loadSettings();
   const queryChannel = new URLSearchParams(location.search).get("channel") || "";
   const channel = queryChannel.replace(/\D/g, "");
