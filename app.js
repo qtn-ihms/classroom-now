@@ -829,6 +829,20 @@ function countGaps(points) {
   return gaps;
 }
 
+function placeChartTip(tip, anchorX, anchorY, boundsW, boundsH) {
+  const margin = 8;
+  const width = tip.offsetWidth;
+  const height = tip.offsetHeight;
+  const minLeft = width / 2 + margin;
+  const maxLeft = boundsW - width / 2 - margin;
+  const left = maxLeft >= minLeft ? Math.min(maxLeft, Math.max(minLeft, anchorX)) : boundsW / 2;
+  const minTop = height * 1.2 + margin;
+  const maxTop = Math.max(minTop, boundsH - margin);
+  const top = Math.min(maxTop, Math.max(minTop, anchorY));
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
+}
+
 function onChartMove(event) {
   const layout = event.currentTarget._layout;
   const tip = event.currentTarget.querySelector(".chart-tip");
@@ -850,8 +864,13 @@ function onChartMove(event) {
   }
   tip.hidden = false;
   tip.textContent = `${formatAxis(best.t)} · ${valueText(layout.metric, best.v)}`;
-  tip.style.left = `${(layout.xOf(best.t) / layout.width) * rect.width}px`;
-  tip.style.top = `${Math.max(32, (layout.yOf(best.v) / layout.height) * rect.height)}px`;
+  placeChartTip(
+    tip,
+    (layout.xOf(best.t) / layout.width) * rect.width,
+    (layout.yOf(best.v) / layout.height) * rect.height,
+    rect.width,
+    rect.height,
+  );
 }
 
 function setChart(plot, points, metric, compact) {
