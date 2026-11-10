@@ -586,7 +586,7 @@ html.is-fullscreen .crest {
 }
 html.is-fullscreen .mast-id h1 { font-size: clamp(28px, 2.2vw, 46px); }
 html.is-fullscreen .mast-id p { font-size: clamp(15px, 1.2vw, 22px); }
-html.is-fullscreen .clock-hm { font-size: clamp(56px, 6vw, 104px); }
+html.is-fullscreen .clock-hm { font-size: clamp(48px, min(5.2vw, 10vh), 96px); }
 html.is-fullscreen .clock-period { font-size: clamp(20px, 1.8vw, 34px); }
 html.is-fullscreen .clock-date { font-size: clamp(16px, 1.3vw, 24px); }
 html.is-fullscreen .sensor-line { font-size: clamp(14px, 1.1vw, 20px); }
@@ -594,32 +594,54 @@ html.is-fullscreen .history-btn { font-size: clamp(15px, 1.2vw, 20px); padding: 
 html.is-fullscreen .jump button[data-page],
 html.is-fullscreen .text-btn { font-size: clamp(15px, 1.2vw, 20px); }
 html.is-fullscreen #page-now {
-  height: 100%;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
-  align-content: stretch;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+  gap: 12px;
 }
-html.is-fullscreen .lead { font-size: clamp(40px, 3.6vw, 72px); }
-html.is-fullscreen .room-detail { font-size: clamp(18px, 1.4vw, 28px); }
-html.is-fullscreen .score-title { font-size: clamp(20px, 1.6vw, 32px); }
-html.is-fullscreen .score-detail { font-size: clamp(15px, 1.2vw, 22px); }
-html.is-fullscreen .score-card { grid-template-columns: clamp(110px, 8vw, 160px) minmax(0, 1fr); }
-html.is-fullscreen #ring svg { width: clamp(110px, 8vw, 160px); height: auto; }
-html.is-fullscreen #metrics { min-height: 0; height: 100%; }
+html.is-fullscreen .lead { font-size: clamp(32px, min(3vw, 6.2vh), 64px); }
+html.is-fullscreen .room-detail { font-size: clamp(16px, min(1.2vw, 2.4vh), 24px); }
+html.is-fullscreen .score-title { font-size: clamp(18px, min(1.4vw, 2.8vh), 30px); }
+html.is-fullscreen .score-detail { font-size: clamp(14px, min(1.1vw, 2.2vh), 20px); }
+html.is-fullscreen .score-card { grid-template-columns: clamp(96px, 7vw, 140px) minmax(0, 1fr); }
+html.is-fullscreen #ring svg { width: clamp(96px, 7vw, 140px); height: auto; }
+html.is-fullscreen #overview,
+html.is-fullscreen .dock,
+html.is-fullscreen .channel-line { flex: none; }
+html.is-fullscreen .channel-line { margin-top: 0; }
+html.is-fullscreen .dock { position: relative; z-index: 1; }
+html.is-fullscreen #metrics {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+}
 html.is-fullscreen .metric-grid {
   height: 100%;
-  grid-template-rows: 1fr 1fr;
-  gap: clamp(12px, 1.2vw, 22px);
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(10px, 1vh, 18px);
 }
 html.is-fullscreen .metric {
+  container-type: size;
   height: 100%;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) minmax(150px, 30%);
-  padding: clamp(16px, 1.4vw, 28px);
+  max-height: 100%;
+  align-content: stretch;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 28%);
+  padding: clamp(12px, 1.4vh, 22px);
+  overflow: hidden;
 }
-html.is-fullscreen .metric-name { font-size: clamp(20px, 1.6vw, 32px); }
-html.is-fullscreen .metric-value { font-size: clamp(48px, 4.4vw, 92px); }
-html.is-fullscreen .metric-unit { font-size: clamp(18px, 1.4vw, 28px); }
-html.is-fullscreen .metric-status { font-size: clamp(16px, 1.3vw, 24px); }
+html.is-fullscreen .metric-name { font-size: clamp(16px, 18cqh, 30px); }
+html.is-fullscreen .metric-value { font-size: clamp(32px, 42cqh, 84px); }
+html.is-fullscreen .metric-unit { font-size: clamp(14px, 16cqh, 26px); }
+html.is-fullscreen .metric-status { font-size: clamp(14px, 14cqh, 22px); margin-top: 4px; }
 html.is-fullscreen .bubble { width: 40px; height: 40px; }
 html.is-fullscreen .bubble svg { width: 22px; height: 22px; }
 html.is-fullscreen .plot-sm { height: 100%; min-height: 0; align-self: stretch; }
