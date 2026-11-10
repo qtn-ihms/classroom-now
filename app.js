@@ -542,6 +542,17 @@ function buildShells() {
     card.append(el("div", { class: "metric-status", id: `pill-${metric.key}` }, "—"));
     metrics.append(card);
     watchPlot(plot);
+
+    const chart = el("article", { class: "card chart-card", id: `chart-${metric.key}` });
+    const head = el("div", { class: "chart-head" });
+    head.append(el("div", {}, [el("h3", {}, metric.name), el("p", { class: "metric-short" }, metric.short)]));
+    head.append(el("div", { class: "chart-now", id: `chart-now-${metric.key}` }, "—"));
+    chart.append(head);
+    const large = el("div", { class: "plot plot-lg", "data-chart": metric.key });
+    chart.append(large);
+    chart.append(el("p", { class: "chart-foot", id: `chart-foot-${metric.key}` }, ""));
+    document.getElementById("chart-grid").append(chart);
+    watchPlot(large);
   }
 }
 
@@ -949,6 +960,10 @@ function render() {
     if (row.value != null) value.append(el("span", { class: "metric-unit" }, row.metric.unit === "°C" || row.metric.unit === "%" ? row.metric.unit : ` ${row.metric.unit}`));
     value.title = "ThingSpeak 最新一筆讀數";
     setChart(document.querySelector(`#metric-${row.metric.key} .plot`), row.points, row.metric, true);
+    text(`#chart-now-${row.metric.key}`, row.value == null ? "—" : valueText(row.metric, row.value));
+    const valid = row.points.filter((point) => row.metric.valid(point.v));
+    text(`#chart-foot-${row.metric.key}`, chartFoot(row.metric, valid));
+    setChart(document.querySelector(`#chart-${row.metric.key} .plot`), row.points, row.metric, false);
   }
 
   renderRing(summary);
@@ -1233,6 +1248,25 @@ function showDemo() {
   render();
 }
 
+function showPage(page, target) {
+  document.getElementById("page-now").hidden = page !== "now";
+  document.getElementById("page-history").hidden = page !== "history";
+  document.querySelectorAll("[data-page]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.page === page && (button.dataset.target || "") === (target || ""));
+  });
+  const nextHash = page === "history" ? "#history" : "#now";
+  if (location.hash !== nextHash) history.replaceState(null, "", nextHash);
+  if (page === "history") {
+    requestAnimationFrame(() => {
+      document.querySelectorAll("#chart-grid .plot").forEach((plot) => drawChart(plot));
+    });
+    return;
+  }
+  if (target) {
+    requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+}
+
 function bindUi() {
   document.querySelectorAll("[data-open-settings]").forEach((button) => {
     button.addEventListener("click", openSettings);
@@ -1323,20 +1357,21 @@ function bindUi() {
     }
     refresh(true);
   });
-  document.querySelectorAll("[data-target]").forEach((button) => {
-    button.addEventListener("click", () => {
-      document.getElementById(button.dataset.target)?.scrollIntoView({ behavior: "smooth", block: "start" });
-      document.querySelectorAll("[data-target]").forEach((item) => item.classList.toggle("active", item === button));
-    });
+  document.querySelectorAll("[data-page]").forEach((button) => {
+    button.addEventListener("click", () => showPage(button.dataset.page, button.dataset.target));
   });
-  const spy = new IntersectionObserver((entries) => {
-    const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (!visible) return;
-    document.querySelectorAll("[data-target]").forEach((button) => {
-      button.classList.toggle("active", button.dataset.target === visible.target.id);
-    });
-  }, { threshold: 0.35 });
-  ["overview", "metrics"].forEach((id) => spy.observe(document.getElementById(id)));
+  const fullscreenButton = document.getElementById("fullscreen-btn");
+  fullscreenButton.addEventListener("click", async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch {
+      toast("這個瀏覽器未能進入全屏。");
+    }
+  });
+  document.addEventListener("fullscreenchange", () => {
+    fullscreenButton.textContent = document.fullscreenElement ? "退出全屏" : "全屏";
+  });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refresh(true);
   });
@@ -1354,6 +1389,7 @@ function boot() {
   applyIdentity();
   bindUi();
   buildShells();
+  if (location.hash === "#history") showPage("history");
   if (!state.settings.useDemo && state.settings.channelId) {
     state.source = "loading";
     state.series = emptySeries();
