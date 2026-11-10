@@ -678,7 +678,8 @@ function drawChart(plot, attempt = 0) {
     return;
   }
   const width = plot.clientWidth;
-  if (width < 20) {
+  const measured = plot.clientHeight;
+  if (width < 20 || measured < 20) {
     if (attempt < 8) requestAnimationFrame(() => drawChart(plot, attempt + 1));
     return;
   }
@@ -701,8 +702,9 @@ function drawChart(plot, attempt = 0) {
     tip = el("div", { class: "chart-tip", hidden: "hidden" });
     plot.append(tip);
   }
-  const height = compact ? 48 : 200;
+  const height = measured;
   const pad = compact ? { l: 2, r: 2, t: 6, b: 6 } : { l: 46, r: 10, t: 12, b: 26 };
+  const axisFont = compact ? 11 : Math.max(11, Math.min(15, Math.round(height / 16)));
   const innerW = Math.max(1, width - pad.l - pad.r);
   const innerH = Math.max(1, height - pad.t - pad.b);
   const dataMin = Math.min(...points.map((point) => point.v));
@@ -736,10 +738,10 @@ function drawChart(plot, attempt = 0) {
         y: y + 4,
         "text-anchor": "end",
         fill: "#8b93a7",
-        "font-size": 11,
+        "font-size": axisFont,
       }).textContent = formatNumber(metric, tick);
     });
-    const labels = width < 280 ? [t0, t1] : [t0, t0 + spanT / 2, t1];
+    const labels = width < 640 ? [t0, t1] : [t0, t0 + spanT / 2, t1];
     labels.forEach((t, index) => {
       const anchor = index === 0 ? "start" : index === labels.length - 1 ? "end" : "middle";
       const x = index === 0 ? pad.l : index === labels.length - 1 ? width - pad.r : xOf(t);
@@ -748,7 +750,7 @@ function drawChart(plot, attempt = 0) {
         y: height - 6,
         "text-anchor": anchor,
         fill: "#8b93a7",
-        "font-size": 11,
+        "font-size": axisFont,
       }).textContent = formatAxis(t);
     });
   }
@@ -1258,7 +1260,9 @@ function showPage(page, target) {
   if (location.hash !== nextHash) history.replaceState(null, "", nextHash);
   if (page === "history") {
     requestAnimationFrame(() => {
-      document.querySelectorAll("#chart-grid .plot").forEach((plot) => drawChart(plot));
+      requestAnimationFrame(() => {
+        document.querySelectorAll("#chart-grid .plot").forEach((plot) => drawChart(plot));
+      });
     });
     return;
   }
@@ -1370,7 +1374,14 @@ function bindUi() {
     }
   });
   document.addEventListener("fullscreenchange", () => {
-    fullscreenButton.textContent = document.fullscreenElement ? "退出全屏" : "全屏";
+    const active = Boolean(document.fullscreenElement);
+    document.documentElement.classList.toggle("is-fullscreen", active);
+    fullscreenButton.textContent = active ? "退出全屏" : "全屏";
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.querySelectorAll(".plot").forEach((plot) => drawChart(plot));
+      });
+    });
   });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refresh(true);
